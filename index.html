@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presencia Radio - Reproductor de Radio Pro</title>
+
+    <!-- SEO Meta Tags for Search Engines -->
+    <meta name="description" content="Escucha Magic Streams Live en vivo. Reproductor de radio online profesional con metadatos de SonicPanel en tiempo real, carátulas sincronizadas y espectro de audio interactivo.">
+    <meta name="keywords" content="radio en vivo, radio online, streaming audio, escuchar radio gratis, musica en vivo, reproductor de radio, sonicpanel, azuracast, metadatos sonicpanel">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Magic Streams Live">
+    
+    <!-- Open Graph / Facebook SEO -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Magic Streams Live - Reproductor de Radio En Vivo">
+    <meta property="og:description" content="Sintoniza nuestra transmisión en vivo con metadatos de SonicPanel en tiempo real y espectro de sonido.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80">
+
+    <!-- Twitter SEO -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Magic Streams Live - Reproductor de Radio En Vivo">
+    <meta name="twitter:description" content="Sintoniza nuestra transmisión en vivo con la mejor calidad de audio y espectro interactivo.">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "RadioStation",
+      "name": "Magic Streams Live",
+      "description": "Estación de radio en vivo transmitiendo música y entretenimiento las 24 horas del día.",
+      "genre": "Música En Vivo",
+      "priceRange": "Gratis"
+    }
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=VT323&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --neon-green: #39ff14;
+            --accent-green: #20e03c;
+            --dark-bg: #121517;
+            --panel-bg: #1c2125;
+            --bezel-grad: linear-gradient(180deg, #383e45 0%, #171a1d 100%);
+        }
+
+        body {
+            background-color: #0b0d0e;
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(32, 224, 60, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 80% 80%, rgba(0, 100, 50, 0.1) 0%, transparent 50%),
+                linear-gradient(to bottom, #090a0b, #111417);
+            font-family: 'Rajdhani', sans-serif;
+            color: #e0e0e0;
+            user-select: none;
+            min-height: 100vh;
+        }
+
+        .player-frame {
+            background: linear-gradient(145deg, #2a2e33, #15181a);
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.85),
+                inset 0 1px 1px rgba(255, 255, 255, 0.25),
+                inset 0 -2px 5px rgba(0, 0, 0, 0.8),
+                0 0 0 1px rgba(0, 0, 0, 0.9);
+            border-radius: 18px;
+            border: 1px solid #3c424a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wave-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 85px;
+            pointer-events: none;
+            z-index: 5;
+            overflow: hidden;
+        }
+
+        .wave-svg {
+            width: 100%;
+            height: 100%;
+            fill: url(#greenGradient);
+            filter: drop-shadow(0px 3px 8px rgba(32, 224, 60, 0.4));
+        }
+
+        .screen-display {
+            background: radial-gradient(circle at center, #111d13 0%, #060907 100%);
+            border: 2px solid #232a2e;
+            box-shadow: 
+                inset 0 0 20px rgba(0, 0, 0, 0.9),
+                inset 0 0 5px rgba(32, 224, 60, 0.15);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dot-matrix-text {
+            font-family: 'VT323', monospace;
+            color: var(--neon-green, #39ff14);
+            text-shadow: 
+                0 0 4px rgba(57, 255, 20, 0.8),
+                0 0 10px rgba(57, 255, 20, 0.4);
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .animate-marquee {
+            display: inline-block;
+            animation: marquee 14s linear infinite;
+        }
+
+        .digital-font {
+            font-family: 'Orbitron', monospace;
+            color: var(--neon-green, #39ff14);
+            text-shadow: 0 0 6px rgba(57, 255, 20, 0.7);
+        }
+
+        .volume-knob-outer {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #484f56 0%, #1d2024 70%, #111315 100%);
+            box-shadow: 
+                0 6px 15px rgba(0, 0, 0, 0.8),
+                inset 0 2px 3px rgba(255, 255, 255, 0.3),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.9),
+                0 0 0 2px #101214;
+            position: relative;
+            cursor: grab;
+            touch-action: none;
+            transition: transform 0.05s ease-out;
+        }
+
+        .volume-knob-outer:active {
+            cursor: grabbing;
+        }
+
+        .volume-knob-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: repeating-conic-gradient(#252a2e 0deg 10deg, #1d2125 10deg 20deg);
+            box-shadow: 
+                inset 0 1px 2px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0,0,0,0.8),
+                0 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .knob-indicator {
+            position: absolute;
+            top: 8px;
+            left: calc(50% - 2px);
+            width: 4px;
+            height: 14px;
+            background: #ffffff;
+            border-radius: 2px;
+            box-shadow: 0 0 5px #ffffff;
+        }
+
+        .knob-ticks {
+            position: absolute;
+            inset: -14px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .social-panel {
+            background: rgba(40, 46, 52, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: -3px 3px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .bottom-panel-container {
+            background: linear-gradient(180deg, #1b1e22 0%, #111315 100%);
+            border-radius: 12px;
+            padding: 10px 14px;
+            border: 1px solid #2d333a;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 8px 20px rgba(0,0,0,0.8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-screen-bezel {
+            background: linear-gradient(180deg, #0e1113 0%, #16191c 100%);
+            border: 1px solid #23282e;
+            border-radius: 20px 20px 8px 8px;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.9), 0 1px 1px rgba(255,255,255,0.05);
+            padding: 8px 16px;
+            position: relative;
+        }
+
+        .knob-green-wave {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 170px;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .knob-green-wave path {
+            fill: url(#greenKnobGradient);
+            filter: drop-shadow(0px -2px 6px rgba(32, 224, 60, 0.4));
+        }
+
+        .btn-transport {
+            width: 44px;
+            height: 38px;
+            background: linear-gradient(180deg, #3d434a 0%, #1f2327 50%, #131618 100%);
+            border: 1px solid #4a515a;
+            border-radius: 6px;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .btn-transport:hover {
+            color: var(--neon-green, #39ff14);
+            border-color: #5c6673;
+        }
+
+        .btn-transport:active, .btn-transport.active {
+            background: linear-gradient(180deg, #101214 0%, #202428 100%);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9);
+            color: var(--neon-green, #39ff14);
+            text-shadow: 0 0 6px var(--neon-green, #39ff14);
+            border-color: #24292e;
+        }
+
+        .timer-display-box {
+            background: #000000;
+            border: 1px solid #23282d;
+            border-radius: 5px;
+            height: 38px;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
+        }
+
+        #toastContainer {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .pulse-whatsapp {
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+        }
+    </style>
+</head>
+
+<body class="flex flex-col items-center justify-start p-3 sm:p-6 min-h-screen pb-24 sm:pb-6">
+
+    <div id="toastContainer" class="space-y-3 pointer-events-none"></div>
+
+    <header class="w-full max-w-3xl flex flex-wrap items-center justify-between gap-3 mb-6 bg-slate-900/80 p-3 rounded-xl border border-slate-800 shadow-lg backdrop-blur">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-green-400 to-emerald-700 flex items-center justify-center text-slate-950 font-black text-lg shadow-md shadow-green-500/20 overflow-hidden shrink-0" id="headerLogoWrapper">
+                <i class="fa-solid font-bold fa-radio" id="defaultHeaderIcon"></i>
+                <img id="stationLogoImg" class="w-full h-full object-cover hidden" alt="Logo">
+            </div>
+            <div>
+                <h1 id="headerStationTitle" class="font-bold text-lg leading-tight tracking-wide text-white flex items-center gap-2">
+                    Presencia Live <span class="text-xs px-2 py-0.5 rounded bg-green-500/20 text-green-400 border border-green-500/30">v2.5 Pro</span>
+                </h1>
+                <p class="text-xs text-slate-400">Reproductor En Vivo con Metadatos SonicPanel & Auto-Sync</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openModal('requestModal')" class="hidden sm:flex bg-emerald-600/20 hover:bg-emerald-600/30 text-green-400 text-xs px-3.5 py-2 rounded-lg border border-green-500/30 items-center gap-2 font-semibold transition shadow-md">
+                <i class="fa-solid fa-music text-green-400"></i> Pedidos en Línea
+            </button>
+
+            <a href="admin.html" target="_blank" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg border border-slate-700 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-sliders text-green-400"></i> Panel Admin
+            </a>
+        </div>
+    </header>
+
+    <main class="w-full max-w-3xl my-auto">
+        <div class="player-frame p-4 sm:p-6 w-full">
+            
+            <div class="wave-header">
+                <svg class="wave-svg" viewBox="0 0 800 120" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#14962c" stop-opacity="0.9" />
+                            <stop offset="35%" stop-color="#2fff52" stop-opacity="0.95" />
+                            <stop offset="65%" stop-color="#1de242" stop-opacity="0.8" />
+                            <stop offset="100%" stop-color="#0e6b1f" stop-opacity="0.9" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 0 0 L 0 35 C 100 35, 120 115, 220 115 C 320 115, 340 10, 450 10 C 560 10, 600 0, 800 0 Z"></path>
+                </svg>
+            </div>
+
+            <div class="relative z-10 flex justify-between items-center mb-3 px-1">
+                <div class="grid grid-cols-3 gap-1 w-6 opacity-60 hover:opacity-100 transition cursor-pointer" title="Magic Streams Player Grid">
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                    <span class="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+                </div>
+
+                <div class="text-right">
+                    <h2 class="text-white font-bold text-base sm:text-lg tracking-wider drop-shadow" id="playerMainTitle">Magic Streams Demo</h2>
+                    <div class="flex items-center justify-end gap-1.5">
+                        <span id="livePulse" class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                        <span class="font-extrabold text-xs tracking-widest text-white drop-shadow" id="liveBadgeText">LIVE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DISPLAY CONTAINER -->
+            <div class="screen-display w-full p-3 sm:p-4 mb-4 relative min-h-[220px] flex flex-col justify-between">
+                <div class="scanlines absolute inset-0 z-10 opacity-30"></div>
+
+                <div class="relative z-20 flex flex-wrap sm:flex-nowrap items-start gap-4">
+                    
+                    <div class="relative group shrink-0 mx-auto sm:mx-0">
+                        <div class="w-28 h-28 sm:w-36 sm:h-36 rounded-full border-2 border-emerald-500/40 bg-slate-900 shadow-2xl relative flex items-center justify-center p-1">
+                            <img id="albumCoverImg" 
+                                 src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80" 
+                                 alt="Album Cover" 
+                                 class="w-full h-full object-cover rounded-full"
+                                 style="will-change: transform; transition: none;"
+                                 onerror="handleCoverError(this)">
+                            <div class="absolute inset-0 rounded-full border border-white/10 pointer-events-none"></div>
+                            <div class="absolute w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-950 border-2 border-emerald-500/60 z-10 pointer-events-none shadow-md"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 w-full min-w-0 flex flex-col justify-between h-28 sm:h-36">
+                        <div class="mb-1 flex items-center justify-between gap-2">
+                            <h3 id="displayArtistName" class="italic text-lg sm:text-2xl font-bold text-white tracking-wide truncate drop-shadow-md">
+                                Presencia Online
+                            </h3>
+                            <!-- Bitrate y Oyentes visibles únicamente en tablets y desktop (md:flex) -->
+                            <div class="hidden md:flex items-center gap-2 shrink-0">
+                                <span id="statBitrateDesktop" class="text-xs sm:text-sm font-mono font-bold text-green-400 bg-black/60 px-2.5 py-0.5 rounded border border-green-900/50 shadow-sm" title="Bitrate de la Transmisión">
+                                    BF: 128k
+                                </span>
+                                <span id="statListenersDesktop" class="text-xs sm:text-sm font-mono font-bold text-emerald-300 bg-black/60 px-2.5 py-0.5 rounded border border-green-900/50 shadow-sm" title="Oyentes Conectados">
+                                    USR 1
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="relative flex-1 w-full bg-black/40 rounded border border-green-900/30 overflow-hidden">
+                            <canvas id="spectrumCanvas" class="w-full h-full block"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="social-panel rounded-lg p-1.5 flex flex-col gap-2 shrink-0 self-center sm:self-start z-20">
+                        <button onclick="shareLink('facebook')" class="w-8 h-8 rounded bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition shadow" title="Compartir en Facebook">
+                            <i class="fa-brands fa-facebook-f text-sm"></i>
+                        </button>
+                        <button onclick="shareLink('twitter')" class="w-8 h-8 rounded bg-sky-500 hover:bg-sky-400 text-white flex items-center justify-center transition shadow" title="Compartir en X / Twitter">
+                            <i class="fa-brands fa-twitter text-sm"></i>
+                        </button>
+                        <button onclick="shareLink('email')" class="w-8 h-8 rounded bg-cyan-600 hover:bg-cyan-500 text-white flex items-center justify-center transition shadow" title="Enviar por Email">
+                            <i class="fa-solid fa-envelope text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative z-20 mt-3 pt-2 border-t border-green-900/40 overflow-hidden bg-black/60 rounded px-2 py-1">
+                    <div class="w-full overflow-hidden whitespace-nowrap">
+                        <div id="matrixMarqueeText" class="dot-matrix-text text-base sm:text-xl font-bold tracking-widest animate-marquee">
+                            Presencia Radio Online -- Transmisión en Vivo
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-panel-container w-full relative z-10">
+                <svg class="knob-green-wave" viewBox="0 0 170 110" preserveAspectRatio="none">
+                    <defs>
+                        <linearGradient id="greenKnobGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#2fff52" stop-opacity="0.95" />
+                            <stop offset="50%" stop-color="#1de242" stop-opacity="0.9" />
+                            <stop offset="100%" stop-color="#0e6b1f" stop-opacity="0.85" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M 50 110 C 65 40, 110 0, 170 0 L 170 110 Z"></path>
+                </svg>
+
+                <div class="relative z-20 grid grid-cols-12 items-center gap-2 sm:gap-4">
+                    <div class="col-span-8 sm:col-span-9 flex flex-col gap-2.5">
+                        
+                        <div class="stats-screen-bezel flex items-center justify-between gap-x-3 gap-y-1 text-xs font-mono">
+                            <!-- RELOJ DE PANTALLA -->
+                            <div class="flex flex-col shrink-0">
+                                <span id="statClock" class="digital-font text-green-400 font-bold text-sm sm:text-base tracking-wider drop-shadow">
+                                    00 : 00 : 00
+                                </span>
+                                <span id="statFormat" class="text-slate-400 font-semibold text-[11px] tracking-widest uppercase">
+                                    DC:
+                                </span>
+                            </div>
+
+                            <!-- INFORMACIÓN PARA MÓVILES (Reloj y Estadísticas móviles) -->
+                            <div class="flex flex-col md:hidden items-end justify-center shrink-0 text-right leading-tight">
+                                <span id="statBitrateMobile" class="text-[11px] font-mono font-bold text-green-400">BF: 128k</span>
+                                <span id="statListenersMobile" class="text-[11px] font-mono font-bold text-emerald-300">USR 1</span>
+                            </div>
+
+                            <!-- HISTORIAL DE CANCIÓN ANTERIOR (Oculto en móviles, visible en tablets y pc) -->
+                            <div id="previousSongContainer" class="hidden md:flex items-center gap-3.5 px-4 py-2 bg-black/85 border border-emerald-500/30 rounded-2xl flex-1 max-w-[340px] lg:max-w-[460px] shrink-0 overflow-hidden shadow-lg">
+                                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl shrink-0 overflow-hidden border border-emerald-500/50 bg-slate-900 shadow-md">
+                                    <img id="prevAlbumCoverImg" 
+                                         src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&q=80" 
+                                         alt="Canción Anterior" 
+                                         class="w-full h-full object-cover"
+                                         onerror="handleCoverError(this)">
+                                </div>
+                                <div class="min-w-0 flex-1 leading-tight">
+                                    <span class="block text-[10px] font-bold text-green-400 uppercase tracking-widest truncate flex items-center gap-1 mb-0.5">
+                                        <i class="fa-solid fa-clock-rotate-left text-[9px]"></i> Canción Anterior
+                                    </span>
+                                    <h4 id="prevSongTitle" class="text-xs sm:text-sm font-bold text-white truncate">Sin historial</h4>
+                                    <p id="prevArtistName" class="text-[11px] sm:text-xs text-slate-300 truncate font-medium">--</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <button id="btnPlayPause" onclick="togglePlay()" class="btn-transport" title="Reproducir / Pausa">
+                                <i id="playIcon" class="fa-solid fa-play text-lg ml-0.5"></i>
+                            </button>
+
+                            <button id="btnStop" onclick="stopAudio()" class="btn-transport" title="Detener">
+                                <i class="fa-solid fa-square text-xs"></i>
+                            </button>
+
+                            <div class="timer-display-box">
+                                <span id="digitalTimer" class="font-mono text-white text-base sm:text-lg font-bold tracking-widest">
+                                    00:00:00
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-span-4 sm:col-span-3 flex flex-col items-center justify-center relative">
+                        <div id="volumeKnob" class="volume-knob-outer flex items-center justify-center shrink-0">
+                            <div class="knob-ticks">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="44" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-dasharray="3 5" fill="none"/>
+                                </svg>
+                            </div>
+                            
+                            <div class="volume-knob-inner">
+                                <div id="knobIndicator" class="knob-indicator"></div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-1">
+                            <span class="block text-[11px] font-bold tracking-wider text-white uppercase drop-shadow">Volume</span>
+                            <span id="volumeValueText" class="block text-[10px] text-slate-300 font-mono leading-none">0.8</span>
+                        </div>
+
+                        <div class="absolute -bottom-1 -right-1 text-right pointer-events-none">
+                            <span class="text-[9px] font-bold text-white tracking-tight drop-shadow">Dios es bueno</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FLOATING WHATSAPP BUTTON -->
+    <div class="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3 pointer-events-auto">
+        <button onclick="openModal('requestModal')" 
+                class="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white flex items-center justify-center text-2xl shadow-2xl border-2 border-white/20 transition-transform transform hover:scale-110 active:scale-90 pulse-whatsapp"
+                title="Conectar con WhatsApp de Cabina">
+            <i class="fa-brands fa-whatsapp text-3xl"></i>
+        </button>
+    </div>
+
+    <div id="requestModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            
+            <button onclick="closeModal('requestModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4 border-b border-slate-800 pb-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-xl">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-white">Pedidos & Saludos en Cabina</h3>
+                    <p class="text-xs text-slate-400">Pide tu tema musical preferido para salir en vivo</p>
+                </div>
+            </div>
+
+            <form onsubmit="handleSendWhatsAppRequest(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Tu Nombre / Nickname</label>
+                    <input type="text" id="reqName" required placeholder="Ej. Carlos Martínez" 
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Tu Ciudad / País</label>
+                    <input type="text" id="reqCity" placeholder="Ej. Lima, Perú" 
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Canción y Artista Solicitado</label>
+                    <input type="text" id="reqSong" required placeholder="Ej. Titanium - David Guetta ft. Sia" 
+                           class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-emerald-500">
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-1">Mensaje o Saludo para la Radio</label>
+                    <textarea id="reqMessage" rows="3" placeholder="Un saludo especial para..." 
+                              class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white outline-none focus:border-emerald-500 resize-none"></textarea>
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Enviar Pedido a Cabina
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- HIDDEN AUDIO ELEMENT -->
+    <audio id="radioAudio" preload="none"></audio>
+
+    <script>
+        let playerConfig = {
+            stationTitle: "Presencia Radio Online",
+            whatsappNumber: "51916508267",
+            serverType: "sonicpanel",
+            streamUrl: "https://azurakp4.com/listen/presenciaradio/radio.mp3",
+            spHost: "conectperu.com",
+            spPort: "8230",
+            apiUrl: "https://azurakp4.com/api/nowplaying/presenciaradio",
+            spectrumStyle: "circular",
+            themeColor: "neon_green",
+            defaultCoverUrl: "https://i.imgur.com/kfY6vQa.png",
+            stationLogoUrl: "",
+            enableIntro: true,
+            introAudioUrl: "",
+            introText: "Presentación Oficial - Cima FM Online"
+        };
+
+        const THEME_PALETTES = {
+            neon_green: { primary: '#39ff14', secondary: '#20e03c', accentDark: '#14962c', darkest: '#0e6b1f', ledLow: '#39ff14', ledMid: '#ffd700', ledHigh: '#ff3333' },
+            cyber_blue: { primary: '#00f0ff', secondary: '#00a2ff', accentDark: '#0055ff', darkest: '#002b80', ledLow: '#00f0ff', ledMid: '#0088ff', ledHigh: '#ff00aa' },
+            crimson_red: { primary: '#ff2a5f', secondary: '#ff0033', accentDark: '#b30024', darkest: '#660014', ledLow: '#ff2a5f', ledMid: '#ff9900', ledHigh: '#ffffff' },
+            sunset_amber: { primary: '#ffb700', secondary: '#ff8800', accentDark: '#d45500', darkest: '#7a2f00', ledLow: '#ffb700', ledMid: '#ff5500', ledHigh: '#ff0055' },
+            synthwave_purple: { primary: '#d946ef', secondary: '#a855f7', accentDark: '#7e22ce', darkest: '#4c1d95', ledLow: '#d946ef', ledMid: '#00f0ff', ledHigh: '#ff0055' }
+        };
+
+        function applyThemeColors(themeKey) {
+            const palette = THEME_PALETTES[themeKey] || THEME_PALETTES.neon_green;
+            document.documentElement.style.setProperty('--neon-green', palette.primary);
+            document.documentElement.style.setProperty('--accent-green', palette.secondary);
+
+            const g1 = document.querySelectorAll('#greenGradient stop');
+            if (g1.length >= 4) {
+                g1[0].setAttribute('stop-color', palette.accentDark);
+                g1[1].setAttribute('stop-color', palette.primary);
+                g1[2].setAttribute('stop-color', palette.secondary);
+                g1[3].setAttribute('stop-color', palette.darkest);
+            }
+
+            const g2 = document.querySelectorAll('#greenKnobGradient stop');
+            if (g2.length >= 3) {
+                g2[0].setAttribute('stop-color', palette.primary);
+                g2[1].setAttribute('stop-color', palette.secondary);
+                g2[2].setAttribute('stop-color', palette.darkest);
+            }
+        }
+
+        let isPlaying = false;
+        let isIntroPlaying = false;
+        let introHasFinished = false;
+        let volume = 0.8;
+        let timerInterval = null;
+        let elapsedSeconds = 0;
+        let currentMetadata = { artist: "Cima FM Online", title: "Transmisión en Vivo", cover: "" };
+        let previousMetadata = { artist: "", title: "", cover: "" };
+        let audioEl = document.getElementById('radioAudio');
+        let audioCtx = null;
+        let analyser = null;
+        let sourceNode = null;
+        let canvas = document.getElementById('spectrumCanvas');
+        let ctx = canvas.getContext('2d');
+        let isWebAudioConnected = false;
+
+        let isKnobDragging = false;
+        let knobStartY = 0;
+        let knobStartVol = 0.8;
+        let lastFetchedSongKey = "";
+        let particleArray = [];
+        let vuNeedleL = 0;
+        let vuNeedleR = 0;
+        let albumRotationAngle = 0;
+
+        window.onload = function() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            loadSavedConfig();
+            initVolumeKnob();
+
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            renderSpectrum();
+            updateMetadataDisplay(playerConfig.stationTitle, "Transmisión en Vivo", playerConfig.defaultCoverUrl);
+
+            const unlockMobileAudio = () => {
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume().catch(() => {});
+                }
+            };
+            document.addEventListener('touchstart', unlockMobileAudio, { passive: true });
+            document.addEventListener('click', unlockMobileAudio, { passive: true });
+
+            setTimeout(() => {
+                attemptAutoPlay();
+            }, 600);
+
+            setInterval(fetchLiveMetadata, 5000);
+        };
+
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-slate-900 border-green-500 text-green-400' : 'bg-slate-900 border-amber-500 text-amber-400';
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl text-xs font-semibold transition-all transform translate-y-2 opacity-0 pointer-events-auto ${bgColor}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        async function handleSendWhatsAppRequest(e) {
+            e.preventDefault();
+            const name = document.getElementById('reqName').value.trim();
+            const city = document.getElementById('reqCity').value.trim();
+            const song = document.getElementById('reqSong').value.trim();
+            const msg = document.getElementById('reqMessage').value.trim();
+
+            const now = new Date();
+            const timestamp = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+
+            try {
+                const response = await fetch('requests.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'add',
+                        name: name,
+                        city: city,
+                        song: song,
+                        message: msg,
+                        timestamp: timestamp
+                    })
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.status === 'success') {
+                        showNotification("¡Pedido enviado a cabina con éxito!", "success");
+                        closeModal('requestModal');
+                        
+                        document.getElementById('reqName').value = '';
+                        document.getElementById('reqCity').value = '';
+                        document.getElementById('reqSong').value = '';
+                        document.getElementById('reqMessage').value = '';
+                    } else {
+                        showNotification(result.message || "Error al enviar el pedido a cabina.", "error");
+                    }
+                } else {
+                    showNotification("Error de conexión al enviar el pedido.", "error");
+                }
+            } catch(err) {
+                console.error("Error al registrar pedido en backend:", err);
+                showNotification("Ocurrió un error inesperado al intentar enviar el pedido.", "error");
+            }
+        }
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio || rect.width;
+            canvas.height = rect.height * window.devicePixelRatio || rect.height;
+        }
+
+        function attemptAutoPlay() {
+            if (!isPlaying) {
+                playAudio();
+            }
+        }
+
+        function setupAutoplayFallback() {
+            const startOnUserInteraction = () => {
+                document.removeEventListener('click', startOnUserInteraction);
+                document.removeEventListener('keydown', startOnUserInteraction);
+                document.removeEventListener('touchstart', startOnUserInteraction);
+                if (!isPlaying) {
+                    playAudio();
+                }
+            };
+            document.addEventListener('click', startOnUserInteraction, { once: true });
+            document.addEventListener('keydown', startOnUserInteraction, { once: true });
+            document.addEventListener('touchstart', startOnUserInteraction, { once: true });
+        }
+
+        function togglePlay() {
+            if (isPlaying) pauseAudio();
+            else playAudio();
+        }
+
+        function playAudio() {
+            initWebAudio();
+
+            if (playerConfig.enableIntro && playerConfig.introAudioUrl && !introHasFinished) {
+                startIntroPlayback();
+                return;
+            }
+
+            startLiveStreamPlayback();
+        }
+
+        function startIntroPlayback() {
+            isIntroPlaying = true;
+            audioEl.muted = false;
+            audioEl.volume = volume;
+            audioEl.src = playerConfig.introAudioUrl;
+            audioEl.load();
+
+            const introMsg = playerConfig.introText || "Reproduciendo Presentación Oficial";
+            updateMetadataDisplay(playerConfig.stationTitle || "Cima FM Online", introMsg, playerConfig.defaultCoverUrl);
+
+            audioEl.onended = function() {
+                isIntroPlaying = false;
+                introHasFinished = true;
+                audioEl.onended = null;
+                showNotification("Conectando con la señal en vivo...", "success");
+                startLiveStreamPlayback();
+            };
+
+            audioEl.onerror = function() {
+                isIntroPlaying = false;
+                introHasFinished = true;
+                audioEl.onerror = null;
+                startLiveStreamPlayback();
+            };
+
+            const playPromise = audioEl.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isPlaying = true;
+                    updatePlayStateUI();
+                    startTimer();
+                }).catch(err => {
+                    console.warn("Autoplay bloqueado por navegador:", err);
+                    setupAutoplayFallback();
+                });
+            }
+        }
+
+        function startLiveStreamPlayback() {
+            isIntroPlaying = false;
+            audioEl.onended = null;
+            audioEl.onerror = null;
+            audioEl.muted = false;
+            audioEl.volume = volume;
+
+            audioEl.src = playerConfig.streamUrl;
+            audioEl.load();
+
+            const playPromise = audioEl.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    isPlaying = true;
+                    updatePlayStateUI();
+                    startTimer();
+                    fetchLiveMetadata();
+                }).catch(err => {
+                    console.warn("Error al reproducir el stream en vivo:", err);
+                    setupAutoplayFallback();
+                });
+            }
+        }
+
+        function pauseAudio() {
+            audioEl.pause();
+            isPlaying = false;
+            updatePlayStateUI();
+            stopTimer();
+            if (!isIntroPlaying) {
+                showOfflineCover();
+            }
+        }
+
+        function stopAudio() {
+            audioEl.pause();
+            audioEl.currentTime = 0;
+            isPlaying = false;
+            isIntroPlaying = false;
+            introHasFinished = false;
+            elapsedSeconds = 0;
+            updateTimerDisplay();
+            updatePlayStateUI();
+            stopTimer();
+            showOfflineCover();
+        }
+
+        function showOfflineCover() {
+            const fallbackCover = playerConfig.defaultCoverUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80";
+            updateMetadataDisplay(playerConfig.stationTitle || "Radio En Vivo", "Transmisión Detenida / Fuera de Aire", fallbackCover);
+        }
+
+        function updatePlayStateUI() {
+            const btnPlay = document.getElementById('btnPlayPause');
+            const playIcon = document.getElementById('playIcon');
+            const livePulse = document.getElementById('livePulse');
+            const liveBadgeText = document.getElementById('liveBadgeText');
+
+            if (isPlaying) {
+                btnPlay.classList.add('active');
+                playIcon.className = "fa-solid fa-pause text-sm";
+                livePulse.classList.remove('bg-gray-500');
+                livePulse.classList.add('bg-red-500', 'animate-ping');
+                liveBadgeText.classList.remove('text-gray-400');
+                liveBadgeText.classList.add('text-white');
+            } else {
+                btnPlay.classList.remove('active');
+                playIcon.className = "fa-solid fa-play text-lg ml-0.5";
+                livePulse.classList.remove('animate-ping', 'bg-red-500');
+                livePulse.classList.add('bg-gray-500');
+                liveBadgeText.classList.remove('text-white');
+                liveBadgeText.classList.add('text-gray-400');
+            }
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                elapsedSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function updateTimerDisplay() {
+            const hrs = Math.floor(elapsedSeconds / 3600);
+            const mins = Math.floor((elapsedSeconds % 3600) / 60);
+            const secs = elapsedSeconds % 60;
+            const formatted = 
+                (hrs > 0 ? String(hrs).padStart(2, '0') + ':' : '') +
+                String(mins).padStart(2, '0') + ':' +
+                String(secs).padStart(2, '0');
+            document.getElementById('digitalTimer').innerText = formatted;
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hrs = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            const secs = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('statClock').innerText = `${hrs} : ${mins} : ${secs}`;
+        }
+
+        function initVolumeKnob() {
+            const knob = document.getElementById('volumeKnob');
+            setVolume(0.8);
+
+            knob.addEventListener('pointerdown', (e) => {
+                isKnobDragging = true;
+                knobStartY = e.clientY;
+                knobStartVol = volume;
+                knob.setPointerCapture(e.pointerId);
+            });
+
+            knob.addEventListener('pointermove', (e) => {
+                if (!isKnobDragging) return;
+                const deltaY = knobStartY - e.clientY;
+                let newVol = knobStartVol + (deltaY / 150);
+                newVol = Math.max(0, Math.min(1, newVol));
+                setVolume(newVol);
+            });
+
+            knob.addEventListener('pointerup', (e) => {
+                isKnobDragging = false;
+                try { knob.releasePointerCapture(e.pointerId); } catch(err) {}
+            });
+
+            knob.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                let delta = e.deltaY < 0 ? 0.05 : -0.05;
+                setVolume(Math.max(0, Math.min(1, volume + delta)));
+            }, { passive: false });
+        }
+
+        function setVolume(val) {
+            volume = val;
+            audioEl.volume = volume;
+
+            const deg = -135 + (volume * 270);
+            document.getElementById('knobIndicator').style.transform = `rotate(${deg}deg)`;
+            document.getElementById('knobIndicator').style.transformOrigin = 'bottom center';
+            document.getElementById('volumeKnob').style.transform = `rotate(${deg}deg)`;
+            document.getElementById('volumeValueText').innerText = volume.toFixed(1);
+        }
+
+        function initWebAudio() {
+            isWebAudioConnected = false;
+        }
+
+        function renderSpectrum() {
+            requestAnimationFrame(renderSpectrum);
+
+            if (!canvas || !ctx) return;
+            const width = canvas.width;
+            const height = canvas.height;
+
+            ctx.clearRect(0, 0, width, height);
+
+            const numBars = 32;
+            let freqData = new Uint8Array(numBars);
+
+            if (isPlaying && isWebAudioConnected && analyser) {
+                const rawData = new Uint8Array(analyser.frequencyBinCount);
+                analyser.getByteFrequencyData(rawData);
+                for (let i = 0; i < numBars; i++) {
+                    freqData[i] = rawData[i] || 0;
+                }
+            } else if (isPlaying) {
+                const time = Date.now() * 0.005;
+                for (let i = 0; i < numBars; i++) {
+                    const noise = Math.sin(time + i * 0.3) * 0.5 + 0.5;
+                    const noise2 = Math.cos(time * 1.5 + i * 0.2) * 0.5 + 0.5;
+                    freqData[i] = Math.floor((noise * 0.6 + noise2 * 0.4) * 220 * (volume > 0 ? 1 : 0));
+                }
+            } else {
+                freqData.fill(0);
+            }
+
+            const albumImg = document.getElementById('albumCoverImg');
+            if (albumImg) {
+                const isAudible = isPlaying && volume > 0 && audioEl && !audioEl.muted;
+                if (isAudible) {
+                    const speed = 1.2;
+                    albumRotationAngle += speed;
+                    if (albumRotationAngle >= 360000) albumRotationAngle -= 360000;
+                    albumImg.style.transform = `rotate(${albumRotationAngle}deg)`;
+                }
+            }
+
+            const style = playerConfig.spectrumStyle;
+
+            if (style === 'waveform') {
+                renderWaveform(ctx, width, height, freqData);
+            } else if (style === 'lines') {
+                renderSmoothLines(ctx, width, height, freqData);
+            } else if (style === 'circular') {
+                renderCircularSpectrum(ctx, width, height, freqData);
+            } else if (style === 'vu_meter') {
+                renderVUMeter(ctx, width, height, freqData);
+            } else if (style === 'particles') {
+                renderParticles(ctx, width, height, freqData);
+            } else {
+                renderLEDBlockGrid(ctx, width, height, freqData, numBars);
+            }
+        }
+
+        function renderLEDBlockGrid(ctx, width, height, freqData, numBars) {
+            const barMargin = 3;
+            const barWidth = (width / numBars) - barMargin;
+            const numSegments = 16;
+            const segmentHeight = (height / numSegments) - 1.5;
+            const palette = THEME_PALETTES[playerConfig.themeColor] || THEME_PALETTES.neon_green;
+
+            for (let i = 0; i < numBars; i++) {
+                const x = i * (barWidth + barMargin);
+                const val = freqData[i] / 255;
+                const activeSegments = Math.round(val * numSegments);
+
+                for (let j = 0; j < numSegments; j++) {
+                    const y = height - ((j + 1) * (segmentHeight + 1.5));
+                    let fillColor = '#1b2228';
+                    if (j < activeSegments) {
+                        const ratio = j / numSegments;
+                        if (ratio < 0.6) fillColor = palette.ledLow;
+                        else if (ratio < 0.85) fillColor = palette.ledMid;
+                        else fillColor = palette.ledHigh;
+                    }
+
+                    ctx.fillStyle = fillColor;
+                    ctx.fillRect(x, y, barWidth, segmentHeight);
+                }
+            }
+        }
+
+        function renderWaveform(ctx, width, height, freqData) {
+            const palette = THEME_PALETTES[playerConfig.themeColor] || THEME_PALETTES.neon_green;
+            ctx.beginPath();
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = palette.primary;
+            ctx.shadowColor = palette.primary;
+            ctx.shadowBlur = 8;
+
+            const sliceWidth = width / freqData.length;
+            let x = 0;
+
+            for (let i = 0; i < freqData.length; i++) {
+                const v = freqData[i] / 255.0;
+                const y = height - (v * height * 0.8) - 10;
+
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+
+                x += sliceWidth;
+            }
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        function renderSmoothLines(ctx, width, height, freqData) {
+            const palette = THEME_PALETTES[playerConfig.themeColor] || THEME_PALETTES.neon_green;
+            const barWidth = width / freqData.length;
+            for (let i = 0; i < freqData.length; i++) {
+                const h = (freqData[i] / 255) * height;
+                const x = i * barWidth;
+                
+                const grad = ctx.createLinearGradient(0, height, 0, 0);
+                grad.addColorStop(0, palette.accentDark);
+                grad.addColorStop(0.7, palette.primary);
+                grad.addColorStop(1, '#ffffff');
+
+                ctx.fillStyle = grad;
+                ctx.fillRect(x, height - h, barWidth - 2, h);
+            }
+        }
+
+        function renderCircularSpectrum(ctx, width, height, freqData) {
+            const palette = THEME_PALETTES[playerConfig.themeColor] || THEME_PALETTES.neon_green;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(centerX, centerY) * 0.42;
+            const numBars = freqData.length;
+            
+            const centerGrad = ctx.createRadialGradient(centerX, centerY, 5, centerX, centerY, radius);
+            centerGrad.addColorStop(0, palette.primary + '44');
+            centerGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = centerGrad;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = palette.accentDark;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            for (let i = 0; i < numBars; i++) {
+                const angle = (i / numBars) * Math.PI * 2 - Math.PI / 2;
+                const val = freqData[i] / 255;
+                const barLength = val * (Math.min(centerX, centerY) * 0.5);
+                
+                const x1 = centerX + Math.cos(angle) * radius;
+                const y1 = centerY + Math.sin(angle) * radius;
+                const x2 = centerX + Math.cos(angle) * (radius + barLength);
+                const y2 = centerY + Math.sin(angle) * (radius + barLength);
+
+                ctx.strokeStyle = val > 0.8 ? palette.ledHigh : (val > 0.5 ? palette.ledMid : palette.primary);
+                ctx.lineWidth = Math.max(2, (Math.PI * 2 * radius / numBars) - 1.5);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.stroke();
+            }
+        }
+
+        function renderVUMeter(ctx, width, height, freqData) {
+            const palette = THEME_PALETTES[playerConfig.themeColor] || THEME_PALETTES.neon_green;
+            
+            const half = Math.floor(freqData.length / 2);
+            let sumL = 0, sumR = 0;
+            for (let i = 0; i < half; i++) sumL += freqData[i];
+            for (let i = half; i < freqData.length; i++) sumR += freqData[i];
+            
+            const targetL = (sumL / (half * 255));
+            const targetR = (sumR / ((freqData.length - half) * 255));
+            
+            vuNeedleL += (targetL - vuNeedleL) * 0.2;
+            vuNeedleR += (targetR - vuNeedleR) * 0.2;
+
+            const meterWidth = (width - 30) / 2;
+            const meterHeight = height - 10;
+
+            const drawGauge = (x, y, w, h, level, label) => {
+                ctx.fillStyle = '#0a0d0f';
+                ctx.strokeStyle = '#2d333a';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.rect(x, y, w, h);
+                ctx.fill();
+                ctx.stroke();
+
+                const cx = x + w / 2;
+                const cy = y + h * 0.92;
+                const r = Math.min(w, h) * 0.72;
+                const startAngle = -Math.PI * 0.75;
+                const endAngle = -Math.PI * 0.25;
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, startAngle, endAngle);
+                ctx.strokeStyle = '#22272c';
+                ctx.lineWidth = 5;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, startAngle, startAngle + (endAngle - startAngle) * 0.75);
+                ctx.strokeStyle = palette.primary;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, startAngle + (endAngle - startAngle) * 0.75, endAngle);
+                ctx.strokeStyle = '#ff3333';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                for (let a = 0; a <= 10; a++) {
+                    const tickAngle = startAngle + (endAngle - startAngle) * (a / 10);
+                    const tx1 = cx + Math.cos(tickAngle) * (r - 5);
+                    const ty1 = cy + Math.sin(tickAngle) * (r - 5);
+                    const tx2 = cx + Math.cos(tickAngle) * r;
+                    const ty2 = cy + Math.sin(tickAngle) * r;
+
+                    ctx.strokeStyle = a >= 8 ? '#ff3333' : '#aaaaaa';
+                    ctx.lineWidth = a % 5 === 0 ? 2 : 1;
+                    ctx.beginPath();
+                    ctx.moveTo(tx1, ty1);
+                    ctx.lineTo(tx2, ty2);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = '#888888';
+                ctx.font = '10px Orbitron, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`VU - ${label}`, cx, y + h * 0.45);
+
+                const needleAngle = startAngle + (endAngle - startAngle) * level;
+                const nx = cx + Math.cos(needleAngle) * (r - 2);
+                const ny = cy + Math.sin(needleAngle) * (r - 2);
+
+                ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx + 2, cy);
+                ctx.lineTo(nx + 2, ny);
+                ctx.stroke();
+
+                ctx.strokeStyle = level > 0.8 ? '#ff3333' : '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(nx, ny);
+                ctx.stroke();
+
+                ctx.fillStyle = '#444';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+                ctx.fill();
+            };
+
+            drawGauge(10, 5, meterWidth, meterHeight, vuNeedleL, 'CH 1');
+            drawGauge(15 + meterWidth, 5, meterWidth, meterHeight, vuNeedleR, 'CH 2');
+        }
+
+        function initParticles(width, height) {
+            particleArray = [];
+            const count = 35;
+            for (let i = 0; i < count; i++) {
+                particleArray.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    baseRadius: Math.random() * 2.5 + 1,
+                    angle: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function renderParticles(ctx, width, height, freqData) {
+            if (particleArray.length === 0) {
+                initParticles(width, height);
+            }
+
+            const palette = THEME_PALETTES[playerConfig.themeColor] || THEME_PALETTES.neon_green;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const bass = (freqData[0] || 0) / 255;
+
+            const coreRadius = 12 + bass * 22;
+            const coreGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, coreRadius * 2);
+            coreGrad.addColorStop(0, palette.primary);
+            coreGrad.addColorStop(0.5, palette.secondary + '66');
+            coreGrad.addColorStop(1, 'transparent');
+
+            ctx.fillStyle = coreGrad;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, coreRadius * 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            for (let i = 0; i < particleArray.length; i++) {
+                let p = particleArray[i];
+                const freqVal = (freqData[i % freqData.length] || 0) / 255;
+
+                p.angle += 0.01 + freqVal * 0.025;
+                const orbitRadius = 18 + i * 2.8 + freqVal * 12;
+                
+                p.x = centerX + Math.cos(p.angle) * orbitRadius;
+                p.y = centerY + Math.sin(p.angle) * orbitRadius;
+
+                const pSize = p.baseRadius + freqVal * 3.5;
+
+                ctx.fillStyle = freqVal > 0.75 ? palette.ledHigh : palette.primary;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, pSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                for (let j = i + 1; j < particleArray.length; j++) {
+                    let p2 = particleArray[j];
+                    let dx = p.x - p2.x;
+                    let dy = p.y - p2.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 32) {
+                        ctx.strokeStyle = palette.secondary;
+                        ctx.globalAlpha = (1 - dist / 32) * 0.35;
+                        ctx.lineWidth = 1;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                        ctx.globalAlpha = 1.0;
+                    }
+                }
+            }
+        }
+
+        function fetchLiveMetadata() {
+            if (!isPlaying || isIntroPlaying) return;
+
+            if (playerConfig.serverType === 'sonicpanel') {
+                fetchSonicPanelMetadata();
+            } else if (playerConfig.serverType === 'azuracast' && playerConfig.apiUrl) {
+                fetchAzuraCastMetadata();
+            } else if (playerConfig.apiUrl) {
+                fetchGenericApiMetadata();
+            }
+        }
+
+        function fetchSonicPanelMetadata() {
+            let targetUrl = playerConfig.apiUrl;
+
+            if (!targetUrl) {
+                let host = playerConfig.spHost ? playerConfig.spHost.trim() : '';
+                if (!host && playerConfig.streamUrl) {
+                    try {
+                        const urlObj = new URL(playerConfig.streamUrl);
+                        host = urlObj.hostname;
+                    } catch(e) {}
+                }
+                if (!host) return;
+
+                host = host.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+                const port = playerConfig.spPort ? playerConfig.spPort.trim() : '';
+                const protocol = location.protocol === 'https:' ? 'https:' : 'http:';
+                targetUrl = `${protocol}//${host}${port ? ':' + port : ''}/7G/json.php`;
+            }
+
+            fetch(targetUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data) return;
+                    
+                    let songStr = data.song || data.title || data.now_playing || "";
+                    let artist = "Cima FM Online";
+                    let title = "Transmisión en Vivo";
+                    let cover = data.art || data.cover || data.image || data.art_url || "";
+
+                    if (songStr) {
+                        if (songStr.includes(' - ')) {
+                            const parts = songStr.split(' - ');
+                            artist = parts[0].trim();
+                            title = parts.slice(1).join(' - ').trim();
+                        } else if (songStr.includes(' – ')) {
+                            const parts = songStr.split(' – ');
+                            artist = parts[0].trim();
+                            title = parts.slice(1).join(' – ').trim();
+                        } else {
+                            title = songStr.trim();
+                            artist = playerConfig.stationTitle || "Cima FM Online";
+                        }
+                    } else if (data.artist || data.title) {
+                        artist = data.artist || "Cima FM Online";
+                        title = data.title || "Transmisión en Vivo";
+                    }
+
+                    if (data.listeners !== undefined) {
+                        document.getElementById('statListenersDesktop').innerText = `USR ${data.listeners}`;
+                        document.getElementById('statListenersMobile').innerText = `USR ${data.listeners}`;
+                    }
+                    if (data.bitrate !== undefined) {
+                        document.getElementById('statBitrateDesktop').innerText = `BF: ${data.bitrate}k`;
+                        document.getElementById('statBitrateMobile').innerText = `BF: ${data.bitrate}k`;
+                    }
+
+                    processMetadataResult(artist, title, cover);
+                })
+                .catch(() => {});
+        }
+
+        function fetchAzuraCastMetadata() {
+            fetch(playerConfig.apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    const np = data.now_playing || data;
+                    if (np && np.song) {
+                        if (data.listeners) {
+                            const listCount = data.listeners.total || data.listeners.current || 1;
+                            document.getElementById('statListenersDesktop').innerText = `USR ${listCount}`;
+                            document.getElementById('statListenersMobile').innerText = `USR ${listCount}`;
+                        }
+                        processMetadataResult(
+                            np.song.artist || playerConfig.stationTitle, 
+                            np.song.title || np.song.text, 
+                            np.song.art || ""
+                        );
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function fetchGenericApiMetadata() {
+            fetch(playerConfig.apiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.artist || data.title || data.song) {
+                        const artist = data.artist || playerConfig.stationTitle;
+                        const title = data.title || data.song || "Transmisión en Vivo";
+                        const cover = data.cover || data.art || data.image || "";
+                        processMetadataResult(artist, title, cover);
+                    }
+                })
+                .catch(() => {});
+        }
+
+        async function processMetadataResult(artist, title, cover) {
+            const currentSongKey = `${artist}-${title}`;
+            if (currentSongKey === lastFetchedSongKey && currentMetadata.cover && currentMetadata.cover !== playerConfig.defaultCoverUrl) {
+                return;
+            }
+
+            if (lastFetchedSongKey && currentMetadata.title && currentMetadata.title !== "Transmisión en Vivo" && currentMetadata.title !== "Transmisión Detenida / Fuera de Aire") {
+                updatePreviousSongDisplay(currentMetadata.artist, currentMetadata.title, currentMetadata.cover);
+            }
+
+            lastFetchedSongKey = currentSongKey;
+
+            let finalCover = cover;
+
+            if (!finalCover || !finalCover.startsWith('http') || finalCover.includes('unsplash.com')) {
+                const autoCover = await fetchITunesAlbumCover(artist, title);
+                if (autoCover) {
+                    finalCover = autoCover;
+                } else {
+                    finalCover = playerConfig.defaultCoverUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80";
+                }
+            }
+
+            updateMetadataDisplay(artist, title, finalCover);
+        }
+
+        function updatePreviousSongDisplay(artist, title, cover) {
+            if (!artist || !title || title === "Transmisión en Vivo" || title === "Transmisión Detenida / Fuera de Aire") return;
+            
+            previousMetadata = { artist, title, cover };
+            
+            const prevImg = document.getElementById('prevAlbumCoverImg');
+            const prevTitle = document.getElementById('prevSongTitle');
+            const prevArtist = document.getElementById('prevArtistName');
+
+            if (prevTitle) prevTitle.innerText = title;
+            if (prevArtist) prevArtist.innerText = artist;
+            if (prevImg) {
+                prevImg.src = cover || playerConfig.defaultCoverUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&q=80";
+            }
+        }
+
+        async function fetchITunesAlbumCover(artist, title) {
+            if (!artist || !title || artist === "Radio En Vivo" || artist === "Cima FM Online") return null;
+            try {
+                const query = encodeURIComponent(`${artist} ${title}`);
+                const response = await fetch(`https://itunes.apple.com/search?term=${query}&entity=song&limit=1`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.results && data.results.length > 0 && data.results[0].artworkUrl100) {
+                        return data.results[0].artworkUrl100.replace('100x100bb', '600x600bb');
+                    }
+                }
+            } catch (err) {}
+            return null;
+        }
+
+        function handleCoverError(imgElement) {
+            if (playerConfig.defaultCoverUrl && imgElement.src !== playerConfig.defaultCoverUrl) {
+                imgElement.src = playerConfig.defaultCoverUrl;
+            }
+        }
+
+        function updateMetadataDisplay(artist, title, cover) {
+            currentMetadata.artist = artist;
+            currentMetadata.title = title;
+            currentMetadata.cover = cover;
+
+            document.getElementById('displayArtistName').innerText = artist;
+            
+            const fullStr = `🎵  ${artist.toUpperCase()}  --  ${title.toUpperCase()}  --  EN VIVO POR ${playerConfig.stationTitle.toUpperCase()}  🎵`;
+            document.getElementById('matrixMarqueeText').innerText = fullStr;
+
+            if (cover) {
+                document.getElementById('albumCoverImg').src = cover;
+            }
+        }
+
+        function applyGlobalRemoteConfig(remoteConfig) {
+            if (!remoteConfig || !remoteConfig.streamUrl) return;
+
+            playerConfig = { ...playerConfig, ...remoteConfig };
+            
+            applyThemeColors(playerConfig.themeColor);
+            
+            document.getElementById('playerMainTitle').innerText = playerConfig.stationTitle || "Radio En Vivo";
+
+            const logoImg = document.getElementById('stationLogoImg');
+            const defaultIcon = document.getElementById('defaultHeaderIcon');
+            if (playerConfig.stationLogoUrl) {
+                logoImg.src = playerConfig.stationLogoUrl;
+                logoImg.classList.remove('hidden');
+                defaultIcon.classList.add('hidden');
+            } else {
+                logoImg.classList.add('hidden');
+                defaultIcon.classList.remove('hidden');
+            }
+
+            if (!isPlaying) {
+                showOfflineCover();
+            }
+
+            applyEmbedParams();
+        }
+
+        function applyEmbedParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.get('theme')) {
+                playerConfig.themeColor = urlParams.get('theme');
+                applyThemeColors(playerConfig.themeColor);
+            }
+            if (urlParams.get('spectrum')) {
+                playerConfig.spectrumStyle = urlParams.get('spectrum');
+            }
+
+            if (urlParams.get('embed') === '1' || urlParams.get('hideHeader') === '1') {
+                const headerEl = document.querySelector('header');
+                if (headerEl) headerEl.style.display = 'none';
+            }
+
+            if (urlParams.get('hideWhatsapp') === '1') {
+                const waBtn = document.querySelector('.pulse-whatsapp')?.parentElement;
+                if (waBtn) waBtn.style.display = 'none';
+            }
+
+            if (urlParams.get('autoplay') === 'true' && !isPlaying) {
+                setTimeout(() => { attemptAutoPlay(); }, 300);
+            }
+        }
+
+        function loadSavedConfig() {
+            const saved = localStorage.getItem('magic_radio_config');
+            if (saved) {
+                try {
+                    playerConfig = { ...playerConfig, ...JSON.parse(saved) };
+                    applyGlobalRemoteConfig(playerConfig);
+                } catch(err) {}
+            }
+            fetchConfigJson();
+            setInterval(fetchConfigJson, 10000);
+        }
+
+        async function fetchConfigJson() {
+            try {
+                const response = await fetch('config.json?t=' + Date.now());
+                if (response.ok) {
+                    const jsonConfig = await response.json();
+                    applyGlobalRemoteConfig(jsonConfig);
+                }
+            } catch (e) {}
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function shareLink(platform) {
+            const url = encodeURIComponent(window.location.href);
+            const text = encodeURIComponent(`Escuchando en vivo: ${currentMetadata.artist} - ${currentMetadata.title} en ${playerConfig.stationTitle}`);
+
+            let shareUrl = "";
+            if (platform === 'facebook') {
+                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+            } else if (platform === 'twitter') {
+                shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${text}`;
+            } else if (platform === 'email') {
+                shareUrl = `mailto:?subject=${encodeURIComponent(playerConfig.stationTitle)}&body=${text}%20${url}`;
+            }
+
+            if (shareUrl) {
+                window.open(shareUrl, '_blank', 'width=600,height=400');
+            }
+        }
+    </script>
+</body>
+</html>

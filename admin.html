@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración & Generador Embed - Magic Streams Live</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0f17;
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+        .admin-card {
+            background: #151c28;
+            border: 1px solid #232d3f;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .nav-tab-btn.active {
+            background-color: #10b981;
+            color: #022c22;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8 max-w-6xl mx-auto flex flex-col justify-between min-h-screen">
+
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <header class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800 mb-8">
+        <div class="flex items-center gap-3">
+            <div id="headerLogoWrapper" class="w-11 h-11 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-green-500/20 overflow-hidden shrink-0">
+                <i class="fa-solid fa-radio" id="headerLogoIcon"></i>
+                <img id="headerLogoImg" class="w-full h-full object-cover hidden" alt="Logo Station">
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-white font-mono tracking-wide">Magic Streams Control Panel</h1>
+                <p class="text-xs text-slate-400">Sincronización en Tiempo Real con Hosting & Generador Embed</p>
+            </div>
+        </div>
+
+        <div id="authHeaderActions" class="flex items-center gap-3">
+            <a href="https://cimagroupcompany.com/player/" target="_blank" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition flex items-center gap-2">
+                <i class="fa-solid fa-play text-green-400"></i> Ver Reproductor
+            </a>
+            <button id="btnLogout" onclick="handleLogout()" class="hidden px-4 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-semibold transition flex items-center gap-2">
+                <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+            </button>
+        </div>
+    </header>
+
+    <section id="authSection" class="my-auto max-w-md mx-auto w-full">
+        <!-- LOGIN CARD -->
+        <div id="loginCard" class="admin-card rounded-2xl p-6 sm:p-8 space-y-5">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-green-500/10 border border-green-500/30 flex items-center justify-center text-green-400 mx-auto text-xl">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h2 class="text-lg font-bold text-white">Acceso Administrador</h2>
+                <p class="text-xs text-slate-400">Ingresa las credenciales para gestionar tu emisora</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Usuario</label>
+                    <input type="text" id="loginUser" required placeholder="admin" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Contraseña</label>
+                    <input type="password" id="loginPass" required placeholder="••••••••" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-slate-950 font-bold text-sm shadow-lg shadow-green-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-key"></i> Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="text-center pt-2">
+                <button onclick="showRecoveryView()" class="text-xs text-slate-400 hover:text-green-400 transition underline">
+                    ¿Olvidaste tu contraseña? Restablecer aquí
+                </button>
+            </div>
+        </div>
+
+        <!-- RECOVERY CARD -->
+        <div id="recoveryCard" class="admin-card rounded-2xl p-6 sm:p-8 space-y-5 hidden">
+            <div class="text-center space-y-2">
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 mx-auto text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h2 class="text-lg font-bold text-white">Recuperación de Clave</h2>
+                <p class="text-xs text-slate-400">Ingresa tu PIN Maestro de Seguridad</p>
+            </div>
+
+            <form onsubmit="handlePasswordRecovery(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">PIN Maestro (Por defecto: 1234)</label>
+                    <input type="password" id="recoveryPin" required placeholder="1234" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-amber-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nueva Contraseña</label>
+                    <input type="password" id="newPassword" required placeholder="Nueva contraseña" 
+                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm outline-none focus:border-amber-500">
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-check-double"></i> Restablecer Contraseña
+                </button>
+            </form>
+
+            <div class="text-center pt-2">
+                <button onclick="showLoginView()" class="text-xs text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-arrow-left"></i> Volver al Login
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="dashboardSection" class="hidden space-y-8">
+        
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
+            <button id="tabBtnConfig" onclick="switchTab('config')" class="nav-tab-btn active px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-white">
+                <i class="fa-solid fa-sliders"></i> Configuración de la Emisora
+            </button>
+            <button id="tabBtnEmbed" onclick="switchTab('embed')" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white">
+                <i class="fa-solid fa-code text-green-400"></i> Generador de Código Embed / Iframe
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <main class="lg:col-span-8 space-y-6">
+                
+                <!-- TAB 1: Main Form Settings -->
+                <div id="tabContentConfig" class="space-y-6">
+                    <div class="admin-card rounded-2xl p-6 sm:p-8">
+                        <h2 class="text-base font-bold text-white mb-6 flex items-center gap-2.5 border-b border-slate-800 pb-4">
+                            <i class="fa-solid fa-sliders text-green-400"></i> Ajustes Generales de Transmisión
+                        </h2>
+
+                        <form onsubmit="handleFormSubmit(event)" class="space-y-5">
+                            
+                            <!-- Station Title & WhatsApp -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nombre de la Emisora</label>
+                                    <input type="text" id="stationTitle" required placeholder="Magic Streams Live" 
+                                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">WhatsApp de Cabina (con código país)</label>
+                                    <input type="text" id="whatsappNumber" placeholder="51999999999" 
+                                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                                </div>
+                            </div>
+
+                            <!-- Server Type & Stream URL -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Tipo de Servidor Stream</label>
+                                    <select id="serverType" onchange="toggleServerFields()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                                        <option value="sonicpanel">SonicPanel API</option>
+                                        <option value="azuracast">AzuraCast API</option>
+                                        <option value="generic">Icecast / Shoutcast / Zeno FM</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL Directa del Stream (MP3/AAC)</label>
+                                    <input type="url" id="streamUrl" required placeholder="https://stream.synthwaveradio.com/live" 
+                                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                                </div>
+                            </div>
+
+                            <!-- SonicPanel Fields Box -->
+                            <div id="sonicpanelBox" class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 space-y-3">
+                                <h3 class="text-xs font-bold text-green-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-server"></i> Servidor SonicPanel API Metadatos
+                                </h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] text-slate-400 mb-1">Host / Dominio del Panel</label>
+                                        <input type="text" id="spHost" placeholder="panel.synthwaveradio.com" 
+                                               class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-slate-400 mb-1">Puerto Numérico de Radio</label>
+                                        <input type="text" id="spPort" placeholder="8000" 
+                                               class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-green-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- API URL Box -->
+                            <div id="apiUrlBox" class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="block text-xs font-semibold text-white flex items-center gap-1.5">
+                                        <i class="fa-solid fa-code text-green-400"></i> SonicPanel / AzuraCast / JSON API URL
+                                    </label>
+                                    <span class="text-[10px] text-green-400 font-mono">Respuesta JSON</span>
+                                </div>
+                                <input type="url" id="apiUrl" placeholder="https://panel.synthwaveradio.com:8000/7G/json.php" 
+                                       class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500 font-mono">
+                                <p class="text-[11px] text-slate-400">
+                                    Estructura SonicPanel: <code class="text-green-300">https://TU_HOST:PUERTO/7G/json.php</code>
+                                </p>
+                            </div>
+
+                            <!-- Spectrum Style & Theme Selection -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Modo de Espectro Ecualizador Predeterminado</label>
+                                    <select id="spectrumStyle" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white outline-none focus:border-green-500 text-sm">
+                                        <option value="led_bars">Bloques LED (Estilo Hardware Retro)</option>
+                                        <option value="waveform">Onda Senoidal / Osciloscopio</option>
+                                        <option value="lines">Líneas Verticales Suaves</option>
+                                        <option value="circular">Espectro Circular / Radial 360°</option>
+                                        <option value="vu_meter">Vúmetro Analógico Doble (Estilo Vintage)</option>
+                                        <option value="particles">Galaxia de Partículas Pulsantes</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Color Predeterminado del Reproductor</label>
+                                    <select id="themeColor" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-white outline-none focus:border-green-500 text-sm">
+                                        <option value="neon_green">Verde Neón (Hardware Retro)</option>
+                                        <option value="cyber_blue">Azul Neón / Ciberpunk</option>
+                                        <option value="crimson_red">Rojo Fuego / Carmesí</option>
+                                        <option value="sunset_amber">Ámbar Dorado / Sunset</option>
+                                        <option value="synthwave_purple">Púrpura Synthwave / Neón Violeta</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="p-4 bg-slate-900/60 rounded-xl border border-slate-800 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xs font-bold text-green-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <i class="fa-solid fa-circle-play"></i> Presentación / Intro de la Emisora
+                                    </h3>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="enableIntro" class="w-4 h-4 accent-green-500 rounded cursor-pointer">
+                                        <span class="text-xs text-slate-300 font-semibold">Activar Intro</span>
+                                    </label>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[11px] text-slate-400 mb-1">URL Audio Intro (MP3/AAC)</label>
+                                        <input type="url" id="introAudioUrl" placeholder="https://ejemplo.com/intro.mp3" 
+                                               class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] text-slate-400 mb-1">Texto de Pantalla durante Intro</label>
+                                        <input type="text" id="introText" placeholder="Reproduciendo Presentación Oficial" 
+                                               class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-green-500">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Station Covers & Logo -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL Carátula por Defecto / Offline</label>
+                                    <input type="url" id="defaultCoverUrl" placeholder="https://images.unsplash.com/photo-..." 
+                                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL Logotipo de la Emisora</label>
+                                    <input type="url" id="stationLogoUrl" placeholder="https://ejemplo.com/logo.png" 
+                                           class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500">
+                                </div>
+                            </div>
+
+                            <!-- Direct Save Action Button -->
+                            <div class="pt-4 border-t border-slate-800 flex justify-end">
+                                <button type="submit" class="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 text-slate-950 font-bold text-sm shadow-lg shadow-green-500/20 flex items-center justify-center gap-2 transition">
+                                    <i class="fa-solid fa-floppy-disk text-base"></i> Guardar Cambios En Vivo en Hosting
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Admin Password Change Card -->
+                    <div class="admin-card rounded-2xl p-6">
+                        <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-3">
+                            <i class="fa-solid fa-user-gear text-green-400"></i> Cambiar Credenciales de Acceso Admin
+                        </h3>
+                        <form onsubmit="handleCredentialsChange(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">Nuevo Nombre de Usuario</label>
+                                <input type="text" id="changeUser" required placeholder="admin" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-300 mb-1">Nueva Contraseña</label>
+                                <input type="password" id="changePass" required placeholder="••••••••" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs">
+                            </div>
+                            <div class="sm:col-span-2 flex justify-end">
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-green-400 border border-green-500/30 text-xs font-bold transition">
+                                    <i class="fa-solid fa-check"></i> Actualizar Credenciales
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="tabContentEmbed" class="hidden space-y-6">
+                    <div class="admin-card rounded-2xl p-6 sm:p-8 space-y-6">
+                        <div class="border-b border-slate-800 pb-4">
+                            <h2 class="text-base font-bold text-white flex items-center gap-2.5">
+                                <i class="fa-solid fa-laptop-code text-green-400"></i> Generador de Código de Inserción (Embed HTML / Iframe)
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-1">
+                                Genera un código para insertar <strong>únicamente el reproductor</strong> en cualquier página web o blog externo.
+                            </p>
+                        </div>
+
+                        <!-- Embed Configurator Form Controls -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 bg-slate-900/60 p-5 rounded-2xl border border-slate-800">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL del Reproductor Base</label>
+                                <input type="url" id="embedBaseUrl" oninput="generateEmbedCode()" placeholder="https://tudominio.com/index.html" 
+                                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500 font-mono">
+                                <p class="text-[10px] text-slate-400 mt-1">Sugerido automáticamente desde el servidor.</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Estilo / Color del Reproductor</label>
+                                <select id="embedTheme" onchange="generateEmbedCode()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500">
+                                    <option value="neon_green">Verde Neón (Retro Pro)</option>
+                                    <option value="cyber_blue">Azul Neón / Ciberpunk</option>
+                                    <option value="crimson_red">Rojo Fuego / Carmesí</option>
+                                    <option value="sunset_amber">Ámbar Dorado / Sunset</option>
+                                    <option value="synthwave_purple">Púrpura Synthwave / Neón</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Estilo del Espectro Ecualizador</label>
+                                <select id="embedSpectrum" onchange="generateEmbedCode()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500">
+                                    <option value="led_bars">Bloques LED Retro</option>
+                                    <option value="waveform">Onda Senoidal / Osciloscopio</option>
+                                    <option value="lines">Líneas Verticales</option>
+                                    <option value="circular">Circular / Radial 360°</option>
+                                    <option value="vu_meter">Vúmetro Analógico Doble</option>
+                                    <option value="particles">Partículas Pulsantes</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Autoreproducción (Autoplay)</label>
+                                <select id="embedAutoplay" onchange="generateEmbedCode()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500">
+                                    <option value="true">Sí - Intentar Reproducir Automáticamente</option>
+                                    <option value="false">No - Esperar clic del oyente</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Ancho (Width)</label>
+                                <input type="text" id="embedWidth" value="100%" oninput="generateEmbedCode()" placeholder="100% o 500px" 
+                                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500 font-mono">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alto (Height)</label>
+                                <input type="text" id="embedHeight" value="450px" oninput="generateEmbedCode()" placeholder="450px" 
+                                       class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white text-xs outline-none focus:border-green-500 font-mono">
+                            </div>
+
+                            <div class="sm:col-span-2 flex flex-wrap gap-6 pt-2">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="embedShowWhatsapp" checked onchange="generateEmbedCode()" class="w-4 h-4 accent-green-500 rounded cursor-pointer">
+                                    <span class="text-xs text-slate-300 font-semibold">Mostrar Botón de WhatsApp de Pedidos</span>
+                                </label>
+
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="checkbox" id="embedOnlyPlayer" checked onchange="generateEmbedCode()" class="w-4 h-4 accent-green-500 rounded cursor-pointer">
+                                    <span class="text-xs text-slate-300 font-semibold">Ocultar Encabezados de Sitio (Modo Únicamente Reproductor)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Generated Code Box -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-green-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <i class="fa-solid fa-code"></i> Código HTML de Inserción Generado
+                                </label>
+                                <button onclick="copyEmbedCode()" class="px-4 py-1.5 rounded-lg bg-green-500 hover:bg-green-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-lg shadow-green-500/20">
+                                    <i class="fa-regular fa-copy"></i> Copiar Código HTML
+                                </button>
+                            </div>
+
+                            <textarea id="embedOutputCode" readonly rows="4" 
+                                      class="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-green-300 outline-none resize-none shadow-inner select-all"></textarea>
+                        </div>
+
+                        <!-- Live Preview Box -->
+                        <div class="space-y-3 pt-4 border-t border-slate-800">
+                            <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fa-solid fa-eye text-green-400"></i> Vista Previa en Vivo del Reproductor Incrustado
+                            </h3>
+                            <div class="bg-black/80 p-2 sm:p-4 rounded-2xl border border-slate-800 overflow-hidden flex justify-center">
+                                <iframe id="embedLivePreview" src="" class="w-full rounded-xl border border-slate-800 min-h-[420px]" allow="autoplay; encrypted-media"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <aside class="lg:col-span-4 space-y-6">
+                <div class="admin-card rounded-2xl p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-inbox text-green-400"></i> Pedidos en Línea de Oyentes
+                        </h3>
+                        <button type="button" onclick="loadListenerRequests()" class="text-[11px] text-green-400 hover:underline flex items-center gap-1 font-semibold">
+                            <i class="fa-solid fa-rotate-right"></i> Refrescar
+                        </button>
+                    </div>
+
+                    <div id="requestsContainer" class="space-y-3 max-h-80 overflow-y-auto pr-1">
+                        <p class="text-xs text-slate-400 text-center py-4">Cargando pedidos...</p>
+                    </div>
+                </div>
+
+                <!-- Audio Preview Player -->
+                <div class="admin-card rounded-2xl p-5">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-headphones text-green-400"></i> Probador de Audio
+                    </h3>
+                    <audio id="adminAudioPreview" controls class="w-full rounded-lg bg-slate-900 p-2 border border-slate-800 mb-3"></audio>
+                    <button onclick="testCurrentStream()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-green-400 border border-green-500/30 font-bold text-xs flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-play"></i> Probar URL del Stream
+                    </button>
+                </div>
+
+                <!-- Sync Info Box -->
+                <div class="admin-card rounded-2xl p-5 text-xs text-slate-300 space-y-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <i class="fa-solid fa-cloud-arrow-up text-emerald-400"></i> Sincronización Automática
+                    </h3>
+                    <p class="leading-relaxed">
+                        Al presionar <strong class="text-green-400">Guardar Cambios En Vivo</strong>, los cambios se escribirán en <code class="text-green-300">config.json</code> mediante <code class="text-green-300">save_config.php</code>.
+                    </p>
+                    <p class="text-slate-400">
+                        Todos los widgets o iframes embed que hayas insertado en sitios externos se actualizarán automáticamente.
+                    </p>
+                </div>
+            </aside>
+        </div>
+    </section>
+
+    <footer class="mt-8 pt-4 border-t border-slate-800/80 text-center text-xs text-slate-500">
+        Magic Streams Live v2.5 &copy; 2026. Sincronización Directa & Generador Embed Pro.
+    </footer>
+
+    <script>
+        const DEFAULT_CREDS = {
+            username: "admin",
+            password: "admin123",
+            recoveryPin: "1234"
+        };
+
+        let currentConfig = {
+            stationTitle: "Magic Streams Live",
+            whatsappNumber: "51999999999",
+            serverType: "sonicpanel",
+            streamUrl: "https://stream.synthwaveradio.com/live",
+            spHost: "panel.synthwaveradio.com",
+            spPort: "8000",
+            apiUrl: "https://panel.synthwaveradio.com:8000/7G/json.php",
+            spectrumStyle: "led_bars",
+            themeColor: "neon_green",
+            defaultCoverUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80",
+            stationLogoUrl: "",
+            enableIntro: true,
+            introAudioUrl: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a7315b.mp3",
+            introText: "Reproduciendo Presentación Oficial - Magic Streams Live"
+        };
+
+        window.onload = function() {
+            checkAuthSession();
+            loadConfig();
+            loadListenerRequests();
+            initEmbedBaseUrl();
+            setInterval(loadListenerRequests, 10000);
+        };
+
+        function switchTab(tabName) {
+            const btnConfig = document.getElementById('tabBtnConfig');
+            const btnEmbed = document.getElementById('tabBtnEmbed');
+            const contentConfig = document.getElementById('tabContentConfig');
+            const contentEmbed = document.getElementById('tabContentEmbed');
+
+            if (tabName === 'embed') {
+                btnEmbed.classList.add('active', 'bg-green-500', 'text-slate-950');
+                btnEmbed.classList.remove('bg-slate-800', 'text-slate-300');
+                btnConfig.classList.remove('active', 'bg-green-500', 'text-slate-950');
+                btnConfig.classList.add('bg-slate-800', 'text-slate-300');
+
+                contentConfig.classList.add('hidden');
+                contentEmbed.classList.remove('hidden');
+
+                generateEmbedCode();
+            } else {
+                btnConfig.classList.add('active', 'bg-green-500', 'text-slate-950');
+                btnConfig.classList.remove('bg-slate-800', 'text-slate-300');
+                btnEmbed.classList.remove('active', 'bg-green-500', 'text-slate-950');
+                btnEmbed.classList.add('bg-slate-800', 'text-slate-300');
+
+                contentEmbed.classList.add('hidden');
+                contentConfig.classList.remove('hidden');
+            }
+        }
+
+        function initEmbedBaseUrl() {
+            const baseInput = document.getElementById('embedBaseUrl');
+            if (!baseInput.value) {
+                const origin = window.location.origin;
+                const path = window.location.pathname.replace('admin.html', 'index.html');
+                baseInput.value = origin + path;
+            }
+        }
+
+        function generateEmbedCode() {
+            let baseUrl = document.getElementById('embedBaseUrl').value.trim();
+            if (!baseUrl) {
+                baseUrl = window.location.origin + window.location.pathname.replace('admin.html', 'index.html');
+            }
+
+            const theme = document.getElementById('embedTheme').value;
+            const spectrum = document.getElementById('embedSpectrum').value;
+            const autoplay = document.getElementById('embedAutoplay').value;
+            const width = document.getElementById('embedWidth').value.trim() || '100%';
+            const height = document.getElementById('embedHeight').value.trim() || '450px';
+            const showWhatsapp = document.getElementById('embedShowWhatsapp').checked;
+            const onlyPlayer = document.getElementById('embedOnlyPlayer').checked;
+
+            // Construcción de la URL con parámetros de incrustación
+            const urlObj = new URL(baseUrl, window.location.href);
+            urlObj.searchParams.set('embed', onlyPlayer ? '1' : '0');
+            urlObj.searchParams.set('theme', theme);
+            urlObj.searchParams.set('spectrum', spectrum);
+            urlObj.searchParams.set('autoplay', autoplay);
+            if (!showWhatsapp) {
+                urlObj.searchParams.set('hideWhatsapp', '1');
+            }
+
+            const iframeUrl = urlObj.toString();
+
+            // Código HTML para el cliente
+            const iframeCode = `<iframe src="${iframeUrl}" width="${width}" height="${height}" frameborder="0" scrolling="no" allow="autoplay; encrypted-media" style="border:0; overflow:hidden; border-radius:16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"></iframe>`;
+
+            document.getElementById('embedOutputCode').value = iframeCode;
+            document.getElementById('embedLivePreview').src = iframeUrl;
+        }
+
+        function copyEmbedCode() {
+            const codeTextarea = document.getElementById('embedOutputCode');
+            codeTextarea.select();
+            codeTextarea.setSelectionRange(0, 99999);
+            
+            try {
+                navigator.clipboard.writeText(codeTextarea.value);
+                showNotification("¡Código de inserción HTML copiado al portapapeles!", "success");
+            } catch(e) {
+                document.execCommand('copy');
+                showNotification("¡Código copiado al portapapeles!", "success");
+            }
+        }
+
+        function getStoredCreds() {
+            const saved = localStorage.getItem('magic_radio_creds');
+            if (saved) {
+                try { return JSON.parse(saved); } catch(e) {}
+            }
+            return DEFAULT_CREDS;
+        }
+
+        function checkAuthSession() {
+            const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true' || localStorage.getItem('admin_logged_in') === 'true';
+            const authSection = document.getElementById('authSection');
+            const dashboardSection = document.getElementById('dashboardSection');
+            const btnLogout = document.getElementById('btnLogout');
+
+            if (isLoggedIn) {
+                authSection.classList.add('hidden');
+                dashboardSection.classList.remove('hidden');
+                btnLogout.classList.remove('hidden');
+                populateForm();
+            } else {
+                authSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
+                btnLogout.classList.add('hidden');
+                showLoginView();
+            }
+        }
+
+        function handleLogin(e) {
+            if (e) e.preventDefault();
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPass').value.trim();
+            const creds = getStoredCreds();
+
+            if (user === creds.username && pass === creds.password) {
+                sessionStorage.setItem('admin_logged_in', 'true');
+                checkAuthSession();
+                showNotification("¡Bienvenido al Panel de Administración!", "success");
+            } else {
+                showNotification("Usuario o contraseña incorrectos", "error");
+            }
+        }
+
+        function handleLogout() {
+            sessionStorage.removeItem('admin_logged_in');
+            localStorage.removeItem('admin_logged_in');
+            checkAuthSession();
+            showNotification("Sesión cerrada correctamente", "success");
+        }
+
+        function showRecoveryView() {
+            document.getElementById('loginCard').classList.add('hidden');
+            document.getElementById('recoveryCard').classList.remove('hidden');
+        }
+
+        function showLoginView() {
+            document.getElementById('recoveryCard').classList.add('hidden');
+            document.getElementById('loginCard').classList.remove('hidden');
+        }
+
+        function handlePasswordRecovery(e) {
+            if (e) e.preventDefault();
+            const pin = document.getElementById('recoveryPin').value.trim();
+            const newPass = document.getElementById('newPassword').value.trim();
+            const creds = getStoredCreds();
+
+            if (pin === creds.recoveryPin) {
+                creds.password = newPass;
+                localStorage.setItem('magic_radio_creds', JSON.stringify(creds));
+                showNotification("Contraseña restablecida con éxito.", "success");
+                showLoginView();
+                document.getElementById('loginPass').value = newPass;
+            } else {
+                showNotification("PIN Maestro incorrecto", "error");
+            }
+        }
+
+        function handleCredentialsChange(e) {
+            if (e) e.preventDefault();
+            const newUser = document.getElementById('changeUser').value.trim();
+            const newPass = document.getElementById('changePass').value.trim();
+            const creds = getStoredCreds();
+
+            if (!newUser || !newPass) {
+                showNotification("Por favor completa ambos campos", "error");
+                return;
+            }
+
+            creds.username = newUser;
+            creds.password = newPass;
+            localStorage.setItem('magic_radio_creds', JSON.stringify(creds));
+            showNotification("Credenciales de administrador actualizadas", "success");
+            document.getElementById('changeUser').value = '';
+            document.getElementById('changePass').value = '';
+        }
+
+        async function loadConfig() {
+            const saved = localStorage.getItem('magic_radio_config');
+            if (saved) {
+                try {
+                    currentConfig = { ...currentConfig, ...JSON.parse(saved) };
+                } catch(e) {}
+            }
+            try {
+                const res = await fetch('config.json?t=' + Date.now());
+                if (res.ok) {
+                    const data = await res.json();
+                    currentConfig = { ...currentConfig, ...data };
+                    localStorage.setItem('magic_radio_config', JSON.stringify(currentConfig));
+                }
+            } catch(e) {}
+            populateForm();
+        }
+
+        function toggleServerFields() {
+            const serverType = document.getElementById('serverType').value;
+            const spBox = document.getElementById('sonicpanelBox');
+            const apiBox = document.getElementById('apiUrlBox');
+
+            if (serverType === 'sonicpanel') {
+                if (spBox) spBox.classList.remove('hidden');
+                if (apiBox) apiBox.classList.remove('hidden');
+            } else if (serverType === 'azuracast') {
+                if (spBox) spBox.classList.add('hidden');
+                if (apiBox) apiBox.classList.remove('hidden');
+            } else {
+                if (spBox) spBox.classList.add('hidden');
+                if (apiBox) apiBox.classList.remove('hidden');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            
+            const bgColor = type === 'success' 
+                ? 'bg-slate-900 border-green-500 text-green-400' 
+                : (type === 'error' ? 'bg-slate-900 border-red-500 text-red-400' : 'bg-slate-900 border-amber-500 text-amber-400');
+            const icon = type === 'success' ? 'fa-circle-check' : (type === 'error' ? 'fa-circle-xmark' : 'fa-triangle-exclamation');
+
+            toast.className = `flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl text-xs font-semibold transition-all transform translate-y-2 opacity-0 pointer-events-auto ${bgColor}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i> <span>${escapeHtml(message)}</span>`;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        async function loadListenerRequests() {
+            const container = document.getElementById('requestsContainer');
+            if (!container) return;
+            try {
+                const res = await fetch('requests.php?t=' + Date.now());
+                if (res.ok) {
+                    const requests = await res.json();
+                    if (!Array.isArray(requests) || requests.length === 0) {
+                        container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4 italic">No hay pedidos pendientes en cabina.</p>`;
+                        return;
+                    }
+
+                    container.innerHTML = requests.map(req => `
+                        <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs space-y-1.5 relative group">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-white flex items-center gap-1.5">
+                                    <i class="fa-solid fa-user text-green-400 text-[10px]"></i> ${escapeHtml(req.name)}
+                                </span>
+                                <span class="text-[10px] text-slate-500">${escapeHtml(req.timestamp || '')}</span>
+                            </div>
+                            <p class="text-green-300 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-music text-[10px]"></i> ${escapeHtml(req.song)}
+                            </p>
+                            ${req.city ? `<p class="text-[11px] text-slate-400"><i class="fa-solid fa-location-dot text-[10px]"></i> ${escapeHtml(req.city)}</p>` : ''}
+                            ${req.message ? `<p class="text-[11px] text-slate-300 italic bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">"${escapeHtml(req.message)}"</p>` : ''}
+                            <button onclick="deleteListenerRequest('${req.id}')" class="mt-2 w-full py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-[11px] font-bold transition flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i> Eliminar Pedido
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {
+                container.innerHTML = `<p class="text-xs text-amber-400 text-center py-4">Sube <code class="text-green-300">requests.php</code> para gestionar pedidos.</p>`;
+            }
+        }
+
+        async function deleteListenerRequest(id) {
+            try {
+                const res = await fetch('requests.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id: id })
+                });
+                if (res.ok) {
+                    showNotification("Pedido eliminado de la lista", "success");
+                    loadListenerRequests();
+                } else {
+                    showNotification("Error al eliminar el pedido", "error");
+                }
+            } catch(e) {
+                showNotification("No se pudo conectar con requests.php", "error");
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
+
+        function populateForm() {
+            document.getElementById('stationTitle').value = currentConfig.stationTitle || '';
+            document.getElementById('whatsappNumber').value = currentConfig.whatsappNumber || '';
+            document.getElementById('serverType').value = currentConfig.serverType || 'sonicpanel';
+            document.getElementById('streamUrl').value = currentConfig.streamUrl || '';
+            document.getElementById('spHost').value = currentConfig.spHost || '';
+            document.getElementById('spPort').value = currentConfig.spPort || '';
+            document.getElementById('apiUrl').value = currentConfig.apiUrl || '';
+            document.getElementById('spectrumStyle').value = currentConfig.spectrumStyle || 'led_bars';
+            document.getElementById('themeColor').value = currentConfig.themeColor || 'neon_green';
+            
+            const defCover = document.getElementById('defaultCoverUrl');
+            if (defCover) defCover.value = currentConfig.defaultCoverUrl || '';
+            
+            const stLogo = document.getElementById('stationLogoUrl');
+            if (stLogo) stLogo.value = currentConfig.stationLogoUrl || '';
+            
+            document.getElementById('enableIntro').checked = currentConfig.enableIntro !== false;
+            document.getElementById('introAudioUrl').value = currentConfig.introAudioUrl || '';
+            document.getElementById('introText').value = currentConfig.introText || 'Reproduciendo Presentación Oficial';
+            
+            updateImagePreviews();
+            toggleServerFields();
+        }
+
+        function readForm() {
+            const defCover = document.getElementById('defaultCoverUrl');
+            const stLogo = document.getElementById('stationLogoUrl');
+            
+            return {
+                stationTitle: document.getElementById('stationTitle').value.trim(),
+                whatsappNumber: document.getElementById('whatsappNumber').value.trim(),
+                serverType: document.getElementById('serverType').value,
+                streamUrl: document.getElementById('streamUrl').value.trim(),
+                spHost: document.getElementById('spHost').value.trim(),
+                spPort: document.getElementById('spPort').value.trim(),
+                apiUrl: document.getElementById('apiUrl').value.trim(),
+                spectrumStyle: document.getElementById('spectrumStyle').value,
+                themeColor: document.getElementById('themeColor').value,
+                defaultCoverUrl: defCover ? defCover.value.trim() : (currentConfig.defaultCoverUrl || ''),
+                stationLogoUrl: stLogo ? stLogo.value.trim() : (currentConfig.stationLogoUrl || ''),
+                enableIntro: document.getElementById('enableIntro').checked,
+                introAudioUrl: document.getElementById('introAudioUrl').value.trim(),
+                introText: document.getElementById('introText').value.trim()
+            };
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            currentConfig = readForm();
+            localStorage.setItem('magic_radio_config', JSON.stringify(currentConfig));
+            updateHeaderLogo();
+
+            try {
+                const response = await fetch('save_config.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(currentConfig)
+                });
+                
+                if (response.ok) {
+                    const resData = await response.json();
+                    if (resData.status === 'success') {
+                        showNotification("¡Configuración guardada en el hosting en tiempo real!", "success");
+                    } else {
+                        showNotification("Guardado localmente. " + (resData.message || "Verifica permisos"), "warning");
+                    }
+                } else {
+                    showNotification("Guardado localmente. Sube save_config.php a tu hosting.", "success");
+                }
+            } catch(err) {
+                showNotification("Guardado localmente en navegador.", "success");
+            }
+        }
+
+        function updateImagePreviews() {
+            updateHeaderLogo();
+        }
+
+        function updateHeaderLogo() {
+            const logoContainerIcon = document.getElementById('headerLogoIcon');
+            const logoContainerImg = document.getElementById('headerLogoImg');
+            const stLogo = document.getElementById('stationLogoUrl');
+            const logoUrl = (stLogo ? stLogo.value : '') || currentConfig.stationLogoUrl;
+
+            if (logoUrl) {
+                logoContainerImg.src = logoUrl;
+                logoContainerImg.classList.remove('hidden');
+                logoContainerIcon.classList.add('hidden');
+            } else {
+                logoContainerImg.classList.add('hidden');
+                logoContainerIcon.classList.remove('hidden');
+            }
+        }
+
+        function testCurrentStream() {
+            const url = document.getElementById('streamUrl').value.trim();
+            if (!url) {
+                showNotification("Ingresa una URL de stream para probar", "error");
+                return;
+            }
+            const audio = document.getElementById('adminAudioPreview');
+            audio.src = url;
+            audio.play().then(() => {
+                showNotification("Reproduciendo transmisión en vivo...", "success");
+            }).catch(err => {
+                showNotification("Error al reproducir el stream. Verifica CORS.", "error");
+            });
+        }
+    </script>
+</body>
+</html>

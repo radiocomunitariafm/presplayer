@@ -1,0 +1,16 @@
+{
+    "stationTitle": "Cima FM ONline",
+    "whatsappNumber": "51989613957",
+    "serverType": "sonicpanel",
+    "streamUrl": "https:\/\/conectperu.com:8230\/stream",
+    "spHost": "conectperu.com",
+    "spPort": "8230",
+    "apiUrl": "https:\/\/conectperu.com\/cp\/get_info.php?p=8230",
+    "spectrumStyle": "led_bars",
+    "themeColor": "neon_green",
+    "defaultCoverUrl": "https:\/\/cimagroupcompany.com\/demo\/uploads\/news\/news_1787183078_6a863fe6ab31f.jpg",
+    "stationLogoUrl": "https:\/\/cimagroupcompany.com\/uploads\/1785363455_logo-web-200x200.png",
+    "enableIntro": true,
+    "introAudioUrl": "https:\/\/cimagroupcompany.com\/music\/intro.mp3",
+    "introText": "Presentación Oficial - Cima FM Online"
+}
